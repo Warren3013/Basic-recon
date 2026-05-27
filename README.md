@@ -2,11 +2,7 @@
 Recon with existing tools in rust for faster execution
 
 # Tools
-subfinder
-assetfinder
-httprobe
-nuclei
-rustscan
+subfinder, assetfinder, httprobe, nuclei, rustscan
 
 # Requirement
 Install above tools with the below commands:
