@@ -37,6 +37,17 @@ fn run_live(cmd: &str, args: &[&str]) {
         .unwrap_or_else(|e| panic!("Failed to run '{}': {}", cmd, e));
 }
 
+/// Run a command and capture its stdout into a file.
+fn run_to_file(cmd: &str, args: &[&str], out_path: &Path) {
+    let output = Command::new(cmd)
+        .args(args)
+        .stderr(Stdio::inherit())
+        .output()
+        .unwrap_or_else(|e| panic!("Failed to run '{}': {}", cmd, e));
+    fs::write(out_path, &output.stdout)
+        .unwrap_or_else(|e| panic!("Failed to write output of '{}' to {:?}: {}", cmd, out_path, e));
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
@@ -48,14 +59,14 @@ fn main() {
     // ── Directory setup ──────────────────────────────────────────────────────
     let base = Path::new(domain);
     let subdomain_path = base.join("subdomains");
-    let scan_path = base.join("scans");
 
-    for dir in [base, &subdomain_path, &scan_path] {
+    for dir in [base, &subdomain_path] {
         ensure_dir(dir);
     }
 
     let found_txt = subdomain_path.join("found.txt");
     let alive_txt = subdomain_path.join("alive.txt");
+    let web_technology_txt = subdomain_path.join("web_technology.txt"); // Fix 1: no dots in variable names
 
     // ── subfinder ────────────────────────────────────────────────────────────
     banner("Launching subfinder . . .");
@@ -124,11 +135,24 @@ fn main() {
 
     let alive_txt_str = alive_txt.to_string_lossy().into_owned();
 
+    // ── whatweb ──────────────────────────────────────────────────────────────
+    // Fix 2: use run_to_file; split all flags into separate &str args
+    banner("Running whatweb . . .");
+    run_to_file(
+        "whatweb",
+        &["-i", &alive_txt_str, "-a", "3", "-v"],
+        &web_technology_txt,
+    );
+
     // ── nuclei ───────────────────────────────────────────────────────────────
     banner("Running nuclei against URLs . . .");
     run_live("nuclei", &["-l", &alive_txt_str]);
 
-    // ── rustscan ─────────────────────────────────────────────────────────────────
-    banner("Running nmap on alive subdomains . . .");
-    run_live("rustscan", &["-a", &alive_txt_str, "-r 1-65535", "--", "-sC", "-sV"]);
+    // ── rustscan ─────────────────────────────────────────────────────────────
+    // Fix 3: &alive_txt_str already deref-coerces to &str inside the slice
+    banner("Running rustscan on alive subdomains . . .");
+    run_live(
+        "rustscan",
+        &["-a", &alive_txt_str, "-r", "1-65535", "--", "-sC", "-sV"],
+    );
 }
