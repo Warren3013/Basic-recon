@@ -136,7 +136,6 @@ fn main() {
     let alive_txt_str = alive_txt.to_string_lossy().into_owned();
 
     // ── whatweb ──────────────────────────────────────────────────────────────
-    // Fix 2: use run_to_file; split all flags into separate &str args
     banner("Running whatweb . . .");
     run_to_file(
         "whatweb",
@@ -149,10 +148,9 @@ fn main() {
     run_live("nuclei", &["-l", &alive_txt_str]);
 
     // ── rustscan ─────────────────────────────────────────────────────────────
-    // Fix 3: &alive_txt_str already deref-coerces to &str inside the slice
-    banner("Running rustscan on alive subdomains . . .");
+    banner("Running rustscan on alive subdomains . . .");    
     run_live(
-        "rustscan",
-        &["-a", &alive_txt_str, "-r", "1-65535", "--", "-sC", "-sV"],
+    "rustscan",
+    &["-a", &alive_txt_str, "-r", "1-65535", "--ulimit", "5000", "--", "-sC", "-sV"],
     );
 }
