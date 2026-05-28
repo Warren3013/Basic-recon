@@ -6,7 +6,20 @@ use std::process::{Command, Stdio};
  
 const RED: &str = "\x1b[1;31m";
 const RESET: &str = "\x1b[0m";
- 
+
+fn print_banner() {
+    println!("{RED}", RED = RED);
+    println!(r"                                                                      ");
+    println!(r"  ┌────────────────────────────────────────────────────────────┐     ");
+    println!(r"  │   (ง •̀_•́)ง   Hunt. Enumerate. Pwn.                       │     ");
+    println!(r"  │       ~ Automated Recon Framework ~                        │     ");
+    println!(r"  │   ⚔  subfinder • assetfinder • httprobe • nuclei           │     ");
+    println!(r"  │   ⚔  whatweb   • rustscan                                  │     ");
+    println!(r"  └────────────────────────────────────────────────────────────┘     ");
+    println!("{RESET}", RESET = RESET);
+    println!();
+    }
+
 fn banner(msg: &str) {
     println!("{RED}[+] {msg}{RESET}");
 }
@@ -55,6 +68,7 @@ fn main() {
         std::process::exit(1);
     }
     let domain = &args[1];
+    print_banner();
  
     // ── Directory setup ──────────────────────────────────────────────────────
     let base = Path::new(domain);
