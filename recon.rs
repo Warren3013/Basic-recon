@@ -11,10 +11,10 @@ fn print_banner() {
     println!("{RED}", RED = RED);
     println!(r"                                                                      ");
     println!(r"  ┌────────────────────────────────────────────────────────────┐     ");
-    println!(r"  │   (ง •̀_•́)ง   Hunt. Enumerate. Pwn.                       │     ");
+    println!(r"  │   (ง •̀_•́)ง   Hunt. Enumerate. Pwn.                         │     ");
     println!(r"  │       ~ Automated Recon Framework ~                        │     ");
     println!(r"  │   ⚔  subfinder • assetfinder • httprobe • nuclei           │     ");
-    println!(r"  │   ⚔  whatweb   • rustscan                                  │     ");
+    println!(r"  │   ⚔  whatweb   • rustscan    • feroxbuster                 │     ");
     println!(r"  └────────────────────────────────────────────────────────────┘     ");
     println!("{RESET}", RESET = RESET);
     println!();
@@ -184,6 +184,35 @@ fn main() {
     // ── nuclei ───────────────────────────────────────────────────────────────
     banner("Running nuclei against URLs . . .");
     run_live("nuclei", &["-l", &alive_txt_str]);
+
+    // ── feroxbuster ───────────────────────────────────────────────────────────
+    // For every alive host, run feroxbuster for directory discovery.
+    // Results for each host are appended to <domain>/scans/directories.txt
+    let scan_path = base.join("scans");
+    ensure_dir(&scan_path);
+ 
+    let wordlist = "/usr/share/wordlists/SecLists/Discovery/Web-Content/raft-large-directories.txt";
+    let directories_out = scan_path.join("directories.txt");
+    let directories_out_str = directories_out.to_string_lossy().into_owned();
+ 
+    for host in &alive_hosts {
+        let url = format!("https://{}", host);
+        banner(&format!("feroxbuster directory scan: {} . . .", host));
+        run_live(
+            "feroxbuster",
+            &[
+                "--url",          &url,
+                "--wordlist",     wordlist,
+                "--output",       &directories_out_str,
+                "--append-output",
+                "--threads",      "50",
+                "--status-codes", "200,301,302,403",
+                "--silent",
+            ],
+        );
+    }
+ 
+
  
     // ── rustscan ─────────────────────────────────────────────────────────────
     // Pass hosts as a comma-separated list to avoid rustscan treating the
