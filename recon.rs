@@ -123,31 +123,48 @@ fn main() {
  
     // Keep only https results, strip the scheme, write + print (mirrors: grep https | sed | tee)
     let mut alive_file = fs::File::create(&alive_txt).expect("Failed to create alive.txt");
-    for line in httprobe_out.stdout.lines().map_while(Result::ok) {
-        if line.starts_with("https") {
+    let httprobe_lines: Vec<String> = httprobe_out.stdout.lines().map_while(Result::ok).collect();
+    println!("[*] httprobe returned {} result(s)", httprobe_lines.len());
+    for line in &httprobe_lines {
+        println!("    httprobe raw: {}", line);
+        if line.starts_with("https://") || line.starts_with("http://") {
             let host = line
                 .trim_start_matches("https://")
                 .trim_start_matches("http://");
-            println!("{}", host);
+            println!("[*] alive: {}", host);
             writeln!(alive_file, "{}", host).expect("Failed to write to alive.txt");
         }
     }
  
-    // Read alive hosts once, reuse for whatweb and rustscan
+    // Read alive hosts once, reuse for whatweb, nuclei and rustscan
     let alive_content = fs::read_to_string(&alive_txt).expect("Failed to read alive.txt");
     let alive_hosts: Vec<&str> = alive_content
         .lines()
         .filter(|l| !l.trim().is_empty())
         .collect();
  
+    if alive_hosts.is_empty() {
+        eprintln!("[!] No alive hosts found in alive.txt — skipping whatweb, nuclei and rustscan.");
+        return;
+    }
+ 
+    println!("[*] {} alive host(s) found:", alive_hosts.len());
+    for h in &alive_hosts {
+        println!("    {}", h);
+    }
+ 
     let alive_txt_str = alive_txt.to_string_lossy().into_owned();
  
     // ── whatweb ──────────────────────────────────────────────────────────────
-    // Pass each host as a separate argument to avoid whatweb treating the
-    // domain directory as a target (same issue as rustscan).
+    // alive.txt contains bare hostnames (scheme stripped after httprobe),
+    // so restore https:// — whatweb requires full URLs as targets.
     banner("Running whatweb . . .");
-    let mut whatweb_args: Vec<&str> = vec!["-a", "3", "-v"];
-    whatweb_args.extend(alive_hosts.iter().copied());
+    let whatweb_urls: Vec<String> = alive_hosts
+        .iter()
+        .map(|h| format!("https://{}", h))
+        .collect();
+    let mut whatweb_args: Vec<&str> = vec!["-a", "3", "-v", "--open-timeout", "30", "--read-timeout", "30"];
+    whatweb_args.extend(whatweb_urls.iter().map(String::as_str));
     run_to_file("whatweb", &whatweb_args, &web_technology_txt);
  
     // ── nuclei ───────────────────────────────────────────────────────────────
