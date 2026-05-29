@@ -15,5 +15,7 @@ Install above tools with the below commands:
 <ul>sudo apt install cargo</ul>
 <ul>sudo apt install subfinder</ul>
 <ul>sudo apt install feroxbuster</ul>
+
 # Installation
+
 git clone https://github.com/Warren3013/Basic-recon/tree/main/recon.rs && cd Basic-recon && rustc recon.rs -o recon
