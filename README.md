@@ -13,7 +13,6 @@ Install above tools with the below commands:
 <ul>wget https://github.com/bee-san/RustScan/releases/download/2.4.1/rustscan.deb.zip | unzip rustscan.deb.zip | sudo dpkg -i rustscan.deb</ul>
 <ul>sudo apt install nmap</ul>
 <ul>sudo apt install cargo</ul>
-<ul>sudo apt install subfinder</ul>
 <ul>sudo apt install feroxbuster</ul>
 
 # Installation
