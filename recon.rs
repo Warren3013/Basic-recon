@@ -177,9 +177,14 @@ fn main() {
         .iter()
         .map(|h| format!("https://{}", h))
         .collect();
-    let mut whatweb_args: Vec<&str> = vec!["-a", "3", "-v", "--open-timeout", "30", "--read-timeout", "30"];
-    whatweb_args.extend(whatweb_urls.iter().map(String::as_str));
-    run_to_file("whatweb", &whatweb_args, &web_technology_txt);
+    let mut whatweb_args: Vec<&str> = vec![
+        "-a", "3",
+        "-v",
+        "--open-timeout",  "30",
+        "--read-timeout",  "30",
+        "--no-errors",
+        "--ignore-unknown-ssl-errors",
+    ];
  
     // ── nuclei ───────────────────────────────────────────────────────────────
     banner("Running nuclei against URLs . . .");
