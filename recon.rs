@@ -193,24 +193,40 @@ fn main() {
  
     let wordlist = "/usr/share/wordlists/SecLists/Discovery/Web-Content/raft-large-directories.txt";
     let directories_out = scan_path.join("directories.txt");
-    let directories_out_str = directories_out.to_string_lossy().into_owned();
+  
  
-    for host in &alive_hosts {
-        let url = format!("https://{}", host);
-        banner(&format!("feroxbuster directory scan: {} . . .", host));
-        run_live(
-            "feroxbuster",
-            &[
-                "--url",          &url,
-                "--wordlist",     wordlist,
-                "--output",       &directories_out_str,
-                "--append-output",
-                "--threads",      "50",
-                "--status-codes", "200,301,302,403",
-                "--silent",
-            ],
-        );
+   for host in &alive_hosts {
+    let url = format!("https://{}", host);
+    banner(&format!("feroxbuster directory scan: {} . . .", host));
+
+    // Write each host's results to a separate file, e.g. scans/www.example.com.txt
+    let safe_host = host.replace(['/', ':'], "_");
+    let host_out = scan_path.join(format!("{}.txt", safe_host));
+    let host_out_str = host_out.to_string_lossy().into_owned();
+
+    run_live(
+        "feroxbuster",
+        &[
+            "--url",          &url,
+            "--wordlist",     wordlist,
+            "--output",       &host_out_str,
+            "--threads",      "50",
+            "--status-codes", "200,301,302,403",
+            "--silent",
+        ],
+    );
+
+    // Append this host's results into the combined directories.txt
+    if host_out.exists() {
+        let chunk = fs::read(&host_out).unwrap_or_default();
+        let mut combined = fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&directories_out)
+            .expect("Failed to open directories.txt for appending");
+        combined.write_all(&chunk).expect("Failed to append to directories.txt");
     }
+}
  
 
  
