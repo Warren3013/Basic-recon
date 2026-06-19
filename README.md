@@ -17,7 +17,7 @@ Install above tools with the below commands:
 
 # Installation
 
-git clone https://github.com/Warren3013/Basic-recon/tree/main/recon.rs && cd Basic-recon && rustc recon.rs -o recon
+git clone https://github.com/Warren3013/Basic-recon.git && cd Basic-recon && rustc recon.rs -o recon
 
 # Usage
 
