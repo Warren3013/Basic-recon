@@ -20,5 +20,6 @@ Install above tools with the below commands:
 git clone https://github.com/Warren3013/Basic-recon.git && cd Basic-recon && rustc recon.rs -o recon
 
 # Usage
-
+```
 ./recon <domain>
+```
